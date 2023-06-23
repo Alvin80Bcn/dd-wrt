@@ -973,6 +973,22 @@ static void handle_pppoe(void)
 
 }
 
+static void handle_speedtest(void)
+{
+// use minimum of 2 threads
+#ifdef _SC_NPROCESSORS_ONLN
+	int cpucount = sysconf(_SC_NPROCESSORS_ONLN) << 1;
+#else
+	int cpucount = 2;
+#endif
+	if (cpucount > 4)
+		cpucount = 4;	// clamp at 4;
+	char nr[32];
+	sprintf(nr, "%d", cpucount);
+	char *args[] = { "speedtest_cli", "1", nr, "1", nr, NULL };
+	_evalpid(args, NULL, 0, NULL);
+}
+
 static void handle_spppoe(void)
 {
 	stop_service_f("ttraff");
@@ -1463,6 +1479,7 @@ static struct SERVICES services_def[] = {
 	{ "stop_pppoe", handle_spppoe },
 	{ "start_pptp", handle_pppoe },
 	{ "stop_pptp", handle_spppoe },
+	{ "speedtest", handle_speedtest },
 #ifdef HAVE_L2TP
 	{ "start_l2tp", handle_pppoe },
 #endif

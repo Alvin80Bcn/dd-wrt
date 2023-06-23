@@ -387,11 +387,11 @@ static void parse_port_forward(char *wanaddr, char *lan_cclass, char *wordlist, 
 				    )
 					save2file_A_prerouting("-i %s -p tcp --dport %s:%s -j DNAT --to-destination %s", wan_iface, from, to, ip);
 #endif
-				snprintf(buff, sizeof(buff), "-A FORWARD -p tcp -m tcp -d %s --dport %s:%s -j %s\n", ip, from, to, log_accept);
+				snprintf(buff, sizeof(buff), "-A FORWARD -i %s -p tcp -m tcp -d %s --dport %s:%s -j %s\n", wan_iface, ip, from, to, log_accept);
 			} else {
 				if ((!dmzenable)
 				    || (dmzenable && strcmp(ip, nvram_safe_get("dmz_ipaddr")))) {
-					snprintf(buff, sizeof(buff), "-A FORWARD -p tcp -m tcp -d %s --sport %s:%s -j %s\n", ip, from, to, log_drop);
+					snprintf(buff, sizeof(buff), "-A FORWARD -i %s -p tcp -m tcp -d %s --sport %s:%s -j %s\n", wan_iface, ip, from, to, log_drop);
 				}
 			}
 
@@ -409,11 +409,11 @@ static void parse_port_forward(char *wanaddr, char *lan_cclass, char *wordlist, 
 				    )
 					save2file_A_prerouting("-i %s -p udp -m udp --dport %s:%s -j DNAT --to-destination %s", wan_iface, from, to, ip);
 #endif
-				snprintf(buff, sizeof(buff), "-A FORWARD -p udp -m udp -d %s --dport %s:%s -j %s\n", ip, from, to, log_accept);
+				snprintf(buff, sizeof(buff), "-A FORWARD -i %s -p udp -m udp -d %s --dport %s:%s -j %s\n", wan_iface, ip, from, to, log_accept);
 			} else {
 				if ((!dmzenable)
 				    || (dmzenable && strcmp(ip, nvram_safe_get("dmz_ipaddr")))) {
-					snprintf(buff, sizeof(buff), "-A FORWARD -p udp -m udp -d %s --dport %s:%s -j %s\n", ip, from, to, log_drop);
+					snprintf(buff, sizeof(buff), "-A FORWARD -i %s  -p udp -m udp -d %s --dport %s:%s -j %s\n", wan_iface, ip, from, to, log_drop);
 
 				}
 			}
@@ -533,7 +533,7 @@ static void parse_upnp_forward(char *wanface, char *wanaddr, char *lan_cclass)
 		if (!strcmp(proto, "tcp") || !strcmp(proto, "both")) {
 			save2file_A_prerouting("-i %s -p tcp -d %s --dport %s -j DNAT --to-destination %s%d:%s", wanface, wanaddr, wan_port0, lan_cclass, get_single_ip(lan_ipaddr, 3), lan_port0);
 
-			snprintf(buff, sizeof(buff), "-A upnp -p tcp -m tcp -d %s%d --dport %s -j %s\n", lan_cclass, get_single_ip(lan_ipaddr, 3), lan_port0, log_accept);
+			snprintf(buff, sizeof(buff), "-A upnp -i %s -p tcp -m tcp -d %s%d --dport %s -j %s\n", wanface, lan_cclass, get_single_ip(lan_ipaddr, 3), lan_port0, log_accept);
 
 			count += strlen(buff) + 1;
 			suspense = realloc(suspense, count);
@@ -542,7 +542,7 @@ static void parse_upnp_forward(char *wanface, char *wanaddr, char *lan_cclass)
 		if (!strcmp(proto, "udp") || !strcmp(proto, "both")) {
 			save2file_A_prerouting("-i %s -p udp -d %s --dport %s -j DNAT --to-destination %s%d:%s", wanface, wanaddr, wan_port0, lan_cclass, get_single_ip(lan_ipaddr, 3), lan_port0);
 
-			snprintf(buff, sizeof(buff), "-A upnp -p udp -m udp -d %s%d --dport %s -j %s\n", lan_cclass, get_single_ip(lan_ipaddr, 3), lan_port0, log_accept);
+			snprintf(buff, sizeof(buff), "-A upnp -i %s -p udp -m udp -d %s%d --dport %s -j %s\n", wanface, lan_cclass, get_single_ip(lan_ipaddr, 3), lan_port0, log_accept);
 
 			count += strlen(buff) + 1;
 			suspense = realloc(suspense, count);
@@ -645,7 +645,7 @@ static void create_ip_forward(int mode, char *wan_iface, char *src_ip, char *des
 
 		save2file_A_prerouting("-i %s -d %s -j DNAT --to-destination %s", wan_iface, src_ip, dest_ip);
 
-		snprintf(buff, sizeof(buff), "-A FORWARD -d %s -j %s\n", dest_ip, log_accept);
+		snprintf(buff, sizeof(buff), "-A FORWARD -i %s -d %s -j %s\n", wan_iface, dest_ip, log_accept);
 		count += strlen(buff) + 1;
 		suspense = realloc(suspense, count);
 		strcat(suspense, buff);
@@ -805,7 +805,7 @@ static void nat_prerouting(char *wanface, char *wanaddr, char *lan_cclass, int d
 			save2file_A_prerouting("-p tcp -d %s --dport %s -j DNAT --to-destination %s:%d", wanaddr, nvram_safe_get("http_wanport"), lan_ip, web_lanport);
 		} else {
 			sscanf(remote_ip, "%s %s", from, to);
-			wordlist = range(from, get_complete_ip(from, to), tmp);
+			wordlist = range(from, get_complete_ip(from, to), tmp,sizeof(tmp));
 
 			foreach(var, wordlist, next) {
 				save2file_A_prerouting("-p tcp -s %s -d %s --dport %s -j DNAT --to-destination %s:%d", var, wanaddr, nvram_safe_get("http_wanport"), lan_ip, web_lanport);
@@ -822,7 +822,7 @@ static void nat_prerouting(char *wanface, char *wanaddr, char *lan_cclass, int d
 		} else {
 			sscanf(remote_ip, "%s %s", from, to);
 
-			wordlist = range(from, get_complete_ip(from, to), tmp);
+			wordlist = range(from, get_complete_ip(from, to), tmp,sizeof(tmp));
 
 			foreach(var, wordlist, next) {
 				save2file_A_prerouting("-p tcp -s %s -d %s --dport %s -j DNAT --to-destination %s:%s", var, wanaddr, nvram_safe_get("sshd_wanport"), lan_ip, nvram_safe_get("sshd_port"));
@@ -841,7 +841,7 @@ static void nat_prerouting(char *wanface, char *wanaddr, char *lan_cclass, int d
 		} else {
 			sscanf(remote_ip, "%s %s", from, to);
 
-			wordlist = range(from, get_complete_ip(from, to), tmp);
+			wordlist = range(from, get_complete_ip(from, to), tmp,sizeof(tmp));
 
 			foreach(var, wordlist, next) {
 				save2file_A_prerouting("-p tcp -s %s -d %s --dport %s -j DNAT --to-destination %s:23", var, wanaddr, nvram_safe_get("telnet_wanport"), lan_ip);
@@ -1205,12 +1205,12 @@ static int schedule_by_tod(FILE * cfd, int seq)
 				st = end = atoi(token);
 
 			if (rotate == 1 && st == 0)
-				sprintf(wday_end + strlen(wday_end), ",%d", end);
+				snprintf(wday_end + strlen(wday_end),sizeof(wday_end) - strlen(wday_end) , ",%d", end);
 			else if (rotate == 1 && end == 6)
-				sprintf(wday_st + strlen(wday_st), ",%d", st);
+				snprintf(wday_st + strlen(wday_st),sizeof(wday_st) - strlen(wday_end), ",%d", st);
 			else {
-				sprintf(wday_st + strlen(wday_st), ",%d", st);
-				sprintf(wday_end + strlen(wday_end), ",%d", end);
+				snprintf(wday_st + strlen(wday_st),sizeof(wday_st) - strlen(wday_st), ",%d", st);
+				snprintf(wday_end + strlen(wday_end),sizeof(wday_end) - strlen(wday_end), ",%d", end);
 			}
 
 			token = strtok(NULL, sep);
@@ -1315,7 +1315,7 @@ static void ipgrp_chain(char *lan_cclass, int seq, int urlenable, char *iflist, 
 			/*
 			 * The return value of range() is global string array 
 			 */
-			wordlist2 = range(from, to, tmp);
+			wordlist2 = range(from, to, tmp,sizeof(tmp));
 		} else if (sscanf(var1, "%d", &a1) == 1) {
 			if (a1 == 0)	/* unset */
 				continue;
@@ -1788,13 +1788,13 @@ static void advgrp_chain(int seq, int urlenable, char *ifname)
 		save2file_A("advgrp_%d -m ndpi --proto bittorrent -j %s", seq, log_drop);
 		save2file_A("advgrp_%d -m ndpi --proto edonkey -j %s", seq, log_drop);
 		/*atm rarly used protocols */
-//		save2file_A("advgrp_%d -p tcp -m ndpi --proto applejuice -j %s", seq, log_drop);
-//		save2file_A("advgrp_%d -p tcp -m ndpi --proto directconnect -j %s", seq, log_drop);
-//		save2file_A("advgrp_%d -m ndpi --proto fasttrack -j %s", seq, log_drop);
+//              save2file_A("advgrp_%d -p tcp -m ndpi --proto applejuice -j %s", seq, log_drop);
+//              save2file_A("advgrp_%d -p tcp -m ndpi --proto directconnect -j %s", seq, log_drop);
+//              save2file_A("advgrp_%d -m ndpi --proto fasttrack -j %s", seq, log_drop);
 //              save2file_A("advgrp_%d -p tcp -m ndpi --proto filetopia -j %s", seq, log_drop);
 		save2file_A("advgrp_%d -m ndpi --proto gnutella -j %s", seq, log_drop);
 //              save2file_A("advgrp_%d -m ndpi --imesh -j %s", seq, log_drop);
-//		save2file_A("advgrp_%d -p tcp -m ndpi --proto openft -j %s", seq, log_drop);
+//              save2file_A("advgrp_%d -p tcp -m ndpi --proto openft -j %s", seq, log_drop);
 //              save2file_A("advgrp_%d -m ndpi --pando_media_booster -j %s", seq, log_drop);
 //              save2file_A("advgrp_%d -p tcp -m ndpi --soulseek -j %s", seq, log_drop);
 //              save2file_A("advgrp_%d -p tcp -m ndpi --winmx -j %s", seq, log_drop);
@@ -2171,7 +2171,7 @@ int filtersync_main(int argc, char *argv[])
 	for (seq = 1; seq <= NR_RULES; seq++) {
 		int state = if_tod_intime(seq);
 		char enabled[32];
-		sprintf(enabled, "tod%d_enabled",seq);
+		sprintf(enabled, "tod%d_enabled", seq);
 		switch (state) {
 		case 2:	// is in time now
 			if (!nvram_match(enabled, "1")) {
@@ -2195,7 +2195,7 @@ int filtersync_main(int argc, char *argv[])
 	for (seq = 1; seq <= NR_RULES; seq++) {
 		int state = if_tod_intime(seq);
 		char enabled[32];
-		sprintf(enabled, "tod%d_enabled",seq);
+		sprintf(enabled, "tod%d_enabled", seq);
 		switch (state) {
 		case 2:	// is in time now
 			if (!nvram_match(enabled, "1")) {
@@ -3731,7 +3731,7 @@ void start_firewall(void)
 	stop_splashd();
 	start_splashd();
 #endif
-	
+
 	cprintf("ready");
 	cprintf("done\n");
 #ifdef HAVE_SYSCTL_EDIT
@@ -3805,3 +3805,23 @@ void stop_firewall(void)
 #endif
 	return;
 }
+
+#ifdef HAVE_OPENDPI
+extern l7filters *get_raw_filters(void);
+void start_test_ndpi(void)
+{
+	l7filters *filters = get_raw_filters();
+	int cnt = 0;
+	eval("iptables", "-N", "testchain");
+	while (filters[cnt].name) {
+		if (filters[cnt].protocol == 2) {
+			if (eval("iptables", "-A", "testchain", "-m", "ndpi", "--proto", filters[cnt].name, "-j", "DROP"))
+				fprintf(stderr, "error in %s\n", filters[cnt].name);
+			eval("iptables", "-D", "testchain", "-m", "ndpi", "--proto", filters[cnt].name, "-j", "DROP");
+		}
+		cnt++;
+	}
+	eval("iptables", "-X", "testchain");
+
+}
+#endif

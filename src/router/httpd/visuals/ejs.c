@@ -92,17 +92,6 @@ EJ_VISIBLE void ej_no_cache(webs_t wp, int argc, char_t ** argv)
 	return;
 }
 
-void prefix_ip_get(char *name, char *buf, int type)
-{
-	char *val = nvram_safe_get(name);
-	if (type == 1)
-		sprintf(buf, "%d.%d.%d.", get_single_ip(val, 0), get_single_ip(val, 1), get_single_ip(val, 2));
-	if (type == 2)
-		sprintf(buf, "%d.%d.", get_single_ip(val, 0), get_single_ip(val, 1));
-	if (type == 3)
-		sprintf(buf, "%d.", get_single_ip(val, 0));
-}
-
 /*
  * Example:
  * lan_ipaddr=192.168.1.1
@@ -738,6 +727,9 @@ static struct defrule s_conditions[] = {
 #endif
 #ifdef HAVE_HTTPS
 	{ "HTTPS", NULL },
+#endif
+#ifdef HAVE_SPEEDTEST_CLI
+	{ "SPEEDTEST_CLI", NULL },
 #endif
 #ifdef HAVE_REAL_OPENSSL
 	{ "OPENSSL", NULL },
