@@ -2131,7 +2131,7 @@ static void configure_single(int count)
 			sprintf(vathmac, "%s_hwaddr", var);
 			char vmacaddr[32];
 
-			getMacAddr(var, vmacaddr);
+			getMacAddr(var, vmacaddr,sizeof(vmacaddr));
 			nvram_set(vathmac, vmacaddr);
 
 		}
@@ -2210,7 +2210,7 @@ static void configure_single(int count)
 
 	char macaddr[32];
 
-	getMacAddr(dev, macaddr);
+	getMacAddr(dev, macaddr,sizeof(macaddr));
 	nvram_set(athmac, macaddr);
 
 	cprintf("adjust sensitivity\n");
@@ -3184,7 +3184,7 @@ void configure_wifi(void)	// madwifi implementation for atheros based
 				wdsnm = nvram_nget("wlan%d_wds%d_netmask", c, s);
 
 				snprintf(wdsbc, 31, "%s", wdsip);
-				get_broadcast(wdsbc, wdsnm);
+				get_broadcast(wdsbc, sizeof(wdsbc), wdsnm);
 				eval("ifconfig", dev, wdsip, "broadcast", wdsbc, "netmask", wdsnm, "up");
 			} else if (nvram_matchi(wdsvarname, 2)
 				   && nvram_matchi(br1enable, 1)) {

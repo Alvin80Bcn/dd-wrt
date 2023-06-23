@@ -154,7 +154,7 @@ else
 obj-$(CONFIG_NTFS3G) += antfs ntfs-3g
 endif
 endif
-obj-$(CONFIG_SPEEDTEST_CLI) += curl speedtest-cli zlib
+obj-$(CONFIG_SPEEDTEST_CLI) += bearssl curl-static speedtest-cli zlib
 obj-$(CONFIG_RADAUTH) += radauth
 ifneq ($(CONFIG_FONERA),y)
 ifneq ($(CONFIG_XSCALE),y)
@@ -171,7 +171,7 @@ obj-$(CONFIG_ROBOCFG) += robocfg
 obj-$(CONFIG_MULTICAST) += igmp-proxy
 obj-$(CONFIG_UDPXY) += udpxy
 obj-$(CONFIG_SKYTRON) += skytron
-obj-$(CONFIG_OPENVPN) += lzo openvpn
+obj-$(CONFIG_OPENVPN) += lzo openvpn speedtest-cli 
 obj-$(CONFIG_OLSRD) += olsrd
 obj-$(CONFIG_BATMANADV) += batman-adv
 obj-$(CONFIG_FDISK) += fdisk
@@ -332,7 +332,7 @@ obj-$(CONFIG_STRONGSWAN) += gmp strongswan sqlite
 obj-$(CONFIG_PRIVOXY) += zlib pcre privoxy
 obj-$(CONFIG_VENTANA) += kobs-ng
 obj-$(CONFIG_WEBSERVER) += libffi zlib libzip libucontext openssl glib20 libxml2 libmcrypt lighttpd curl libpng sqlite php8 util-linux
-obj-$(CONFIG_TRANSMISSION) += libevent curl transmission zlib
+obj-$(CONFIG_TRANSMISSION) += curl transmission zlib
 obj-$(CONFIG_CLOUD4WI) += curl zlib
 obj-$(CONFIG_UNIWIP) += uniwip_gpio
 ifeq ($(CONFIG_OPENSSL),y)

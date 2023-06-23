@@ -194,11 +194,12 @@ static int detect_driver(char **drivers, char *list, int delay, int insmod)
 		if (!ret && (newcount = getifcount("eth")) > basecount) {
 			basecount = newcount;
 			char *pcid = nvram_safe_get(list);
-			char *newdriver = malloc(strlen(pcid) + strlen(driver) + 2);
+			size_t slen = strlen(pcid) + strlen(driver) + 2;
+			char *newdriver = malloc(slen);
 			if (*pcid)
-				sprintf(newdriver, "%s %s", pcid, driver);
+				snprintf(newdriver,slen, "%s %s", pcid, driver);
 			else
-				sprintf(newdriver, "%s", driver);
+				snprintf(newdriver,slen, "%s", driver);
 			nvram_set(list, newdriver);
 			free(newdriver);
 			rcc |= 1;
@@ -230,9 +231,9 @@ static int detect_drivers(char *buspath, char *enabled, char *list, char **drive
 			snprintf(final, sizeof(final) - 1, "%s %x ", final, vendor);
 		}
 		fclose(fp);
-		hash = hash_string(final, s_hash);
+		hash = hash_string(final, s_hash,sizeof(s_hash));
 	} else {
-		hash = hash_file_string(buspath, s_hash);
+		hash = hash_file_string(buspath, s_hash,sizeof(s_hash));
 	}
 	if (!hash)
 		return 0;	// bus not present. ignore
